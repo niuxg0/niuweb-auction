@@ -1,0 +1,33 @@
+{
+  "name": "niu_auction",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "cd web_src && cyb dev",
+    "start": "electron --inspect=5858 .",
+    "build": "electron-packager . NiuAuction --out dist/mac/ --overwrite",
+    "build:win": "electron-packager . NiuAuction --platform win32 --arch x64 --out dist/win/ --overwrite"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.com/niuxg/niu_auction.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://gitlab.com/niuxg/niu_auction/issues"
+  },
+  "homepage": "https://gitlab.com/niuxg/niu_auction#readme",
+  "devDependencies": {
+    "electron": "^5.0.3",
+    "electron-builder": "^20.43.0",
+    "electron-packager": "^13.1.1",
+    "wine": "^0.9.8"
+  },
+  "build": {
+    "appId": "niuweb.niu_auction",
+    "copyright": "NiuWeb",
+    "productName": "NiuAuction"
+  }
+}
