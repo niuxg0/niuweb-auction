@@ -12,7 +12,8 @@
     "zip": "cyb zip",
     "sftp": "cyb sftp",
     "fontmin": "cyb fontmin",
-    "imagemin": "cyb imagemin"
+    "imagemin": "cyb imagemin",
+    "build": "cyb dist && cp -rf dist/* ../"
   },
   "keywords": [
     "CYB",
@@ -59,6 +60,7 @@
     "react-dom": "^16.8.6",
     "react-loadable": "^5.5.0",
     "react-router-dom": "^5.0.0",
+    "styled-components": "^4.3.2",
     "viser-react": "^2.4.5"
   },
   "author": "塞伯坦前端架构组",

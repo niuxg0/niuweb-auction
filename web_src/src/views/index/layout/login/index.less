@@ -1,5 +1,17 @@
 @import '~antd/lib/style/themes/default.less';
 
+html,
+body,
+:global(#root) {
+  height: 100vh;
+  overflow: hidden;
+}
+
+:global(.ant-layout) {
+  height: 100vh;
+  overflow-y: auto;
+}
+
 .container {
   display: flex;
   flex-direction: column;

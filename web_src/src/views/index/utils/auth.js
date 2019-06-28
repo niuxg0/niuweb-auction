@@ -7,8 +7,8 @@ export default {
    * @param {登录成功后的回调} callback
    */
   login(res, callback) {
-    Cookies.set('clientToken', res.clientToken)
-    Cookies.set('userInfo', res.userInfo)
+    localStorage.setItem('clientToken', res.clientToken)
+    localStorage.setItem('userInfo', JSON.stringify(res.userInfo))
     if (callback) callback()
   },
 
@@ -16,21 +16,21 @@ export default {
    * 是否已登录
    */
   loggedIn() {
-    return !!Cookies.get('clientToken')
+    return !!localStorage.getItem('clientToken')
   },
 
   /**
    * 获取登录后的sessionID
    */
   getToken() {
-    return Cookies.get('clientToken') || '{}'
+    return localStorage.getItem('clientToken') || '{}'
   },
 
   /**
    * 获取登录后的用户信息
    */
   getUserInfo() {
-    return Cookies.get('userInfo') || '{}'
+    return localStorage.getItem('userInfo') || '{}'
   },
 
   /**
@@ -38,8 +38,8 @@ export default {
    * @param {退出登录后的回调} cb
    */
   logout(cb) {
-    Cookies.remove('clientToken')
-    Cookies.remove('userInfo')
+    localStorage.removeItem('clientToken')
+    localStorage.removeItem('userInfo')
     if (cb) cb()
   }
 }

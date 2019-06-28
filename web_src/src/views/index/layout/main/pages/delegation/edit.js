@@ -1,7 +1,10 @@
 import React, { Component } from 'react'
 import {
-  Input, DatePicker, InputNumber, Row, Col, Slider, Divider, Table, Button, Modal, Form, Select
+  Input, DatePicker, InputNumber, Row, Col, Spin, Divider, Table, Button, Modal, Form, Select, message
 } from 'antd'
+import moment from 'moment'
+import { delegationDetail, delegationSave } from '@/api'
+import auth from '@/utils/auth'
 import styles from './index.less';
 
 const electron = window.require('electron')
@@ -43,7 +46,12 @@ export default class Delegate extends Component {
   constructor () {
     super()
     this.state = {
+      loading: true,
+      name: "",
+      date: moment(),
       lot: [],
+      staffs: [],
+      delegates: [],
       staffEdit: false,
       delegateEdit: false
     }
@@ -51,47 +59,27 @@ export default class Delegate extends Component {
     this.delegateInput = React.createRef()
     this.canvas = React.createRef()
   }
-  componentDidMount () {
-    const data = ipcRenderer.sendSync('niu_auction', 'Delegate.List')
-    const lot = [1000, 1100]
-    const staffs = [
-      {
-        name: "陈京",
-        number: 1266
-      },
-      {
-        name: "牛晓光",
-        number: 974
-      }
-    ]
-    const delegates = [
-      {
-        name: "张三",
-        phone: "13812345678",
-        lots: [
-          1023, 1024, 1036, 1040, 1069, 1072
-        ]
-      },
-      {
-        name: "李四",
-        phone: "13812345678",
-        lots: [
-          1030
-        ]
-      },
-      {
-        name: "王五",
-        phone: "13812345678",
-        lots: [
-          1015
-        ]
-      }
-    ]
-    this.setState({
-      lot,
-      staffs,
-      delegates
-    }, () => this.init())
+  componentDidMount () { 
+    if (this.props.match && this.props.match.params && this.props.match.params.id) {
+      delegationDetail({ id: this.props.match.params.id }).then(({ code, delegation }) => {
+        if (code === 0) {
+          this.setState({
+            loading: false,
+            id: this.props.match.params.id,
+            name: delegation.name,
+            date: moment(delegation.date),
+            lot: [delegation.from, delegation.to],
+            staffs: delegation.staffs,
+            delegates: delegation.delegations
+          }, () => this.init())
+        }
+      })
+    } else {
+      this.setState({
+        loading: false
+      })
+      this.init()
+    }
   }
 
   handleNewStaff () {
@@ -119,12 +107,16 @@ export default class Delegate extends Component {
     })
   }
   handleSaveStaff () {
-    const { index, ...staffEdit } = this.state.staffEdit
+    const { index, name = "", number = "" } = this.state.staffEdit
+    if (name === "") {
+      message.error("姓名不能为空")
+      return
+    }
     const staffs = this.state.staffs
     if (index || index === 0) {
-      staffs[index] = staffEdit
+      staffs[index] = { name, number }
     } else {
-      staffs.push(staffEdit)
+      staffs.push({ name, number })
     }
     this.setState({
       staffs,
@@ -169,13 +161,21 @@ export default class Delegate extends Component {
     })
   }
   handleSaveDelegate() {
-    const { index, ...delegateEdit } = this.state.delegateEdit
-    delegateEdit.lots.sort()
+    const { index, name = "", phone = "", lots = [] } = this.state.delegateEdit
+    if (name === "") {
+      message.error("姓名不能为空")
+      return
+    }
+    if (phone === "") {
+      message.error("电话不能为空")
+      return
+    }
+    lots.sort()
     const delegates = this.state.delegates
     if (index || index === 0) {
-      delegates[index] = delegateEdit
+      delegates[index] = { name, phone, lots }
     } else {
-      delegates.push(delegateEdit)
+      delegates.push({ name, phone, lots })
     }
     this.setState({
       delegates,
@@ -214,6 +214,51 @@ export default class Delegate extends Component {
     }, () => this.renderCanvas())
   }
 
+  handleSubmit () {
+    const { id:email } = JSON.parse(auth.getUserInfo())
+    const {
+      id,
+      name = "拍卖会",
+      date = moment(),
+      lot:[from, to] = [0,0],
+      staffs,
+      delegates
+    } = this.state
+
+    delegationSave({
+      email,
+      id,
+      name,
+      date: moment(date).format("YYYY/MM/DD HH:mm:ss"),
+      from,
+      to,
+      staffs,
+      delegations: delegates
+    }).then(res => {
+      if (res.code === 0) {
+        message.success("保存成功")
+        this.setState({
+          id: res.id
+        })
+      }
+    })
+  }
+
+  handleCancel () {
+    this.props.history.push('/delegation/list')
+  }
+
+  handlePrint () {
+    ipcRenderer.send(
+      "delegation.print",
+      {
+        name: this.state.name,
+        date: this.state.date.format("YYYY-HH-DD HH:mm:ss"),
+        staffs: this.renderDelegate()
+      }
+    )
+  }
+
   render () {
     const {
       lot,
@@ -227,164 +272,165 @@ export default class Delegate extends Component {
       lots.push(i)
     }
     return (
-      <div style={{ width: '100%', height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-        <Row gutter={16}>
-          <Col span={8}>
-            <Input placeholder="场次名称" style={{ width: '100%' }} />
-          </Col>
-          <Col span={8}>
-            <DatePicker placeholder="场次时间" style={{ width: '100%' }} />
-          </Col>
-          <Col span={8}>
-            <Input.Group compact>
-              <Input value="Lot." style={{ width: 46 }} disabled />
-              <InputNumber value={lot[0]} style={{ width: 'calc(50% - 37px)' }} />
-              <Input value="-" style={{ width: 30 }} disabled />
-              <InputNumber value={lot[1]} style={{ width: 'calc(50% - 37px)' }} />
-            </Input.Group>
-          </Col>
-        </Row>
-        <Row gutter={16} style={{ marginTop: 16, marginBottom: 16 }}>
-          <Col span={12}>
-            <Table
-              style={{ flex: 1 }}
-              scroll={{ y: 180 }}
-              title={() => (
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span>委托席 / 号牌</span>
-                  <Button size="small" onClick={() => this.handleNewStaff()}>新增</Button>
-                </div>
-              )}
-              size="small"
-              showHeader={false}
-              pagination={false}
-              dataSource={staffs}
-              rowKey="name"
-            >
-              <Table.Column dataIndex="name" />
-              <Table.Column dataIndex="number" />
-              <Table.Column align="right" render={(_, __, index) => (
-                <Button.Group size="small">
-                  <Button onClick={() => this.handleEditStaff(index)}>编辑</Button>
-                  <Button onClick={() => this.handleRemoveStaff(index)}>删除</Button>
-                </Button.Group>
-              )} />
-            </Table>
-          </Col>
-          <Col span={12}>
-            <Table
-              style={{ flex: 1 }}
-              scroll={{ y: 180 }}
-              title={() => (
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span>委托</span>
-                  <Button size="small" onClick={() => this.handleNewDelegate()}>新增</Button>
-                </div>
-              )}
-              size="small"
-              showHeader={false}
-              pagination={false}
-              dataSource={delegates}
-              rowKey="name"
-            >
-              <Table.Column dataIndex="name" />
-              <Table.Column dataIndex="phone" />
-              <Table.Column align="right" render={(_, __, index) => (
-                <Button.Group size="small">
-                  <Button onClick={() => this.handleEditDelegate(index)}>编辑</Button>
-                  <Button onClick={() => this.handleRemoveDelegate(index)}>删除</Button>
-                </Button.Group>
-              )} />
-            </Table>
-          </Col>
-        </Row>
-        <div style={{ width: '100%', flex: 1, display: 'flex', overflow: 'auto' }}>
-          <canvas ref={this.canvas} style={{ width: canvasWidth / 2, height: canvasHeight / 2 }} width={canvasWidth} height={canvasHeight} />
-        </div>
-        <div style={{ width: '100', textAlign: 'right' }}>
-          <Button type="primary">保存</Button>
-        </div>
-        <Modal
-          title="委托席 / 号牌"
-          visible={this.state.staffEdit}
-          onOk={() => this.handleSaveStaff()}
-          onCancel={() => this.handleCancelStaff()}
-          forceRender={true}
-          closable={false}
-          maskClosable={false}
-        >
-          <Form.Item>
-            <Input
-              ref={this.staffInput}
-              addonBefore="姓名"
-              value={!!this.state.staffEdit.name}
-              onInput={(e) => this.handleChangeStaff('name', e.target.value)}
-            />
-          </Form.Item>
-          <Form.Item>
-            <Input
-              addonBefore="号牌"
-              value={this.state.staffEdit.number}
-              onInput={(e) => this.handleChangeStaff('number', e.target.value)}
-            />
-          </Form.Item>
-        </Modal>
-        <Modal
-          title="委托"
-          visible={!!this.state.delegateEdit}
-          onOk={() => this.handleSaveDelegate()}
-          onCancel={() => this.handleCancelDelegate()}
-          forceRender={true}
-          closable={false}
-          maskClosable={false}
-        >
-          <Form.Item>
-            <Input
-              ref={this.delegateInput}
-              addonBefore="姓名"
-              value={this.state.delegateEdit.name}
-              onInput={(e) => this.handleChangeDelegate('name', e.target.value)}
-            />
-          </Form.Item>
-          <Form.Item>
-            <Input
-              addonBefore="电话"
-              value={this.state.delegateEdit.phone}
-              onInput={(e) => this.handleChangeDelegate('phone', e.target.value)}
-            />
-          </Form.Item>
-          <Form.Item>
-            <Input.Group compact>
-              <Input value="Lot." disabled style={{ width: 50 }} />
-              <Select
-                style={{ width: "calc(100% - 50px)" }}
-                mode="tags"
-                tokenSeparators={[',', ' ']}
-                dropdownStyle={{ visibility: "hidden" }}
-                value={this.state.delegateEdit.lots}
-                onChange={(lots) => this.handleChangeDelegate('lots', lots)}
+      <div className={styles.edit}>
+        <Spin spinning={this.state.loading}>
+          <Row gutter={16}>
+            <Col span={8}>
+              <Input placeholder="场次名称" value={this.state.name} onInput={(e) => this.setState({ name: e.target.value })} style={{ width: '100%' }} />
+            </Col>
+            <Col span={8}>
+              <DatePicker placeholder="场次时间" value={this.state.date} onChange={(date) => this.setState({ date })} style={{ width: '100%' }} showTime={true} />
+            </Col>
+            <Col span={8}>
+              <Input.Group compact>
+                <Input value="Lot." style={{ width: 46 }} disabled />
+                <InputNumber value={lot[0]} onChange={(value) => { const lot = this.state.lot; lot[0] = value; this.setState({ lot }) }} style={{ width: 'calc(50% - 37px)' }} />
+                <Input value="-" style={{ width: 30 }} disabled />
+                <InputNumber value={lot[1]} onChange={(value) => { const lot = this.state.lot; lot[1] = value; this.setState({ lot }) }} style={{ width: 'calc(50% - 37px)' }} />
+              </Input.Group>
+            </Col>
+          </Row>
+          <Row gutter={16} style={{ marginTop: 16, marginBottom: 16 }}>
+            <Col span={12}>
+              <Table
+                style={{ flex: 1 }}
+                scroll={{ y: 180 }}
+                title={() => (
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span>委托席 / 号牌</span>
+                    <Button size="small" onClick={() => this.handleNewStaff()}>新增</Button>
+                  </div>
+                )}
+                size="small"
+                showHeader={false}
+                pagination={false}
+                dataSource={staffs}
+                rowKey="name"
               >
-                {lots.map(l => <Select.Option key={l} value={l.toString()}>{l}</Select.Option>)}
-              </Select>
-            </Input.Group>
-          </Form.Item>
-        </Modal>
+                <Table.Column dataIndex="name" />
+                <Table.Column dataIndex="number" />
+                <Table.Column align="right" render={(_, __, index) => (
+                  <Button.Group size="small">
+                    <Button onClick={() => this.handleEditStaff(index)}>编辑</Button>
+                    <Button onClick={() => this.handleRemoveStaff(index)}>删除</Button>
+                  </Button.Group>
+                )} />
+              </Table>
+            </Col>
+            <Col span={12}>
+              <Table
+                style={{ flex: 1 }}
+                scroll={{ y: 180 }}
+                title={() => (
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span>委托</span>
+                    <Button size="small" onClick={() => this.handleNewDelegate()}>新增</Button>
+                  </div>
+                )}
+                size="small"
+                showHeader={false}
+                pagination={false}
+                dataSource={delegates}
+                rowKey="name"
+              >
+                <Table.Column dataIndex="name" />
+                <Table.Column dataIndex="phone" />
+                <Table.Column align="right" render={(_, __, index) => (
+                  <Button.Group size="small">
+                    <Button onClick={() => this.handleEditDelegate(index)}>编辑</Button>
+                    <Button onClick={() => this.handleRemoveDelegate(index)}>删除</Button>
+                  </Button.Group>
+                )} />
+              </Table>
+            </Col>
+          </Row>
+          <div style={{ width: '100%', flex: 1, display: 'flex', overflow: 'auto' }}>
+            <canvas ref={this.canvas} style={{ width: canvasWidth / 2, height: canvasHeight / 2 }} width={canvasWidth} height={canvasHeight} />
+          </div>
+          <div style={{ width: '100', marginTop: 16, textAlign: 'right' }}>
+            <Button onClick={() => this.handlePrint()}>打印报告</Button>
+            <Divider type="vertical" />
+            <Button style={{ marginRight: 8 }} onClick={() => this.handleCancel()}>返回</Button>
+            <Button type="primary" onClick={() => this.handleSubmit()}>保存</Button>
+          </div>
+          <Modal
+            title="委托席 / 号牌"
+            visible={this.state.staffEdit}
+            onOk={() => this.handleSaveStaff()}
+            onCancel={() => this.handleCancelStaff()}
+            forceRender={true}
+            closable={false}
+            maskClosable={false}
+          >
+            <Form.Item>
+              <Input
+                ref={this.staffInput}
+                addonBefore="姓名"
+                value={this.state.staffEdit.name}
+                onInput={(e) => this.handleChangeStaff('name', e.target.value)}
+              />
+            </Form.Item>
+            <Form.Item>
+              <Input
+                addonBefore="号牌"
+                value={this.state.staffEdit.number}
+                onInput={(e) => this.handleChangeStaff('number', e.target.value)}
+              />
+            </Form.Item>
+          </Modal>
+          <Modal
+            title="委托"
+            visible={!!this.state.delegateEdit}
+            onOk={() => this.handleSaveDelegate()}
+            onCancel={() => this.handleCancelDelegate()}
+            forceRender={true}
+            closable={false}
+            maskClosable={false}
+          >
+            <Form.Item>
+              <Input
+                ref={this.delegateInput}
+                addonBefore="姓名"
+                value={this.state.delegateEdit.name}
+                onInput={(e) => this.handleChangeDelegate('name', e.target.value)}
+              />
+            </Form.Item>
+            <Form.Item>
+              <Input
+                addonBefore="电话"
+                value={this.state.delegateEdit.phone}
+                onInput={(e) => this.handleChangeDelegate('phone', e.target.value)}
+              />
+            </Form.Item>
+            <Form.Item>
+              <Input.Group compact>
+                <Input value="Lot." disabled style={{ width: 50 }} />
+                <Select
+                  style={{ width: "calc(100% - 50px)" }}
+                  mode="tags"
+                  tokenSeparators={[',', ' ']}
+                  dropdownStyle={{ visibility: "hidden" }}
+                  value={this.state.delegateEdit.lots}
+                  onChange={(lots) => this.handleChangeDelegate('lots', lots)}
+                >
+                  {lots.map(l => <Select.Option key={l} value={l.toString()}>{l}</Select.Option>)}
+                </Select>
+              </Input.Group>
+            </Form.Item>
+          </Modal>
+        </Spin>
       </div>
     )
   }
   renderCanvas () {
-    console.log('renderCanvas')
     const {
       lot,
-      // staffs,
       canvasWidth,
       canvasHeight,
       canvasLeft
     } = this.state
 
     const staffs = this.renderDelegate()
-
-    console.log('staffs', staffs)
 
     const context = this.canvas.current.getContext('2d')
     context.clearRect(0, 0, canvasWidth, canvasHeight)
@@ -414,7 +460,11 @@ export default class Delegate extends Component {
       context.fillStyle = '#000000'
       context.fillText(staff.name, canvasLeft - canvasParams.namePadding - context.measureText(staff.name).width, canvasParams.lotHeight + canvasParams.nameHeight * (i + 0.5))
 
-      staff.tasks.forEach(task => {
+      const {
+        tasks = []
+      } = staff
+
+      tasks.forEach(task => {
         const fromIndex = Math.max(task.from - lot[0] - minOffset, 0)
         const toIndex = task.to - lot[0] + 1
         const left = canvasLeft + (fromIndex + 0.5) * canvasParams.lotWidth

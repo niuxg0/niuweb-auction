@@ -5,5 +5,5 @@ export default {
   fixedHeader: false, // 固定页头
   autoHideHeader: false, // 下滑时自动隐藏页头
   fixSiderbar: false, // 固定菜单
-  sysName: 'JUI' //系统名称
+  sysName: 'NiuAuction' //系统名称
 }

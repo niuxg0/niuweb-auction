@@ -9,6 +9,13 @@ export const registerVerify = params => fetch('/user/verify', params, 'POST')
 export const register = params => fetch('/user/register', params, 'POST')
 // 登录
 export const login = params => fetch('/user/login', params, 'POST')
+// 委托分配
+export const delegationList = params => fetch('/delegation/list', params, 'POST')
+export const delegationDetail = params => fetch('/delegation/detail', params, 'POST')
+export const delegationSave = params => fetch('/delegation/save', params, 'POST')
+
+
+
 // 基本表格
 export const basictable = params => fetch('/api/basic-table', params, 'GET')
 // 高级表格
