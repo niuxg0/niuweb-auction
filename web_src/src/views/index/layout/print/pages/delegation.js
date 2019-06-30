@@ -37,7 +37,10 @@ export default class Delegation extends React.Component {
   componentDidMount () {
     const electron = window.require('electron')
     const { ipcRenderer } = electron
-    ipcRenderer.send("print")
+    ipcRenderer.sendSync("print")
+    setTimeout(() => {
+      //this.props.history.goBack()
+    }, 100)
   }
   render () {
     const {
@@ -54,19 +57,19 @@ export default class Delegation extends React.Component {
     return (
       <div>
         {
-          staffs.map(({ name, number, tasks = [] }) => (
+          staffs.map(({ name, tasks = [] }) => (
             <React.Fragment>
               <Header gutter={16} style={{ paddingTop: 90 }}>
                 <Col span={6}><span>场次</span>{auction}</Col>
                 <Col span={8}><span>时间</span>{date}</Col>
                 <Col span={5}><span>姓名</span>{name}</Col>
-                <Col span={5}><span>号牌</span>{number}</Col>
               </Header>
               <Divider />
               {
-                tasks.map(({ name, phone, lotList = [] }) => (
+                tasks.map(({ number, name, phone, lotList = [] }) => (
                   <React.Fragment>
                     <Header gutter={16} style={{ marginBottom: 10 }}>
+                      <Col span={6}><span>号牌</span>{number}</Col>
                       <Col span={6}><span>委托人</span>{name}</Col>
                       <Col span={6}><span>电话</span>{phone}</Col>
                     </Header>
