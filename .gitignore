@@ -22,3 +22,4 @@ yarn.lock
 build.command
 dev/zindex.html
 static
+index.html

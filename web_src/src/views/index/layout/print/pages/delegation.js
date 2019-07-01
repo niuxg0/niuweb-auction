@@ -38,9 +38,7 @@ export default class Delegation extends React.Component {
     const electron = window.require('electron')
     const { ipcRenderer } = electron
     ipcRenderer.sendSync("print")
-    setTimeout(() => {
-      //this.props.history.goBack()
-    }, 100)
+    this.props.history.goBack()
   }
   render () {
     const {

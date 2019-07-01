@@ -4,6 +4,7 @@ import DocumentTitle from 'react-document-title'
 import styled from 'styled-components'
 import routes from './routes'
 import logo from '@/assets/jui-logo.svg';
+import styles from './index.less';
 
 const Header = styled.div`
   position: fixed;

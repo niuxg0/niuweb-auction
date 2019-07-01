@@ -1,23 +1,24 @@
 {
   "title": "NiuAuction",
-  "icon": "NiuWebAuction.icns",
-  "icon-size": 40,
+  "icon": "./NiuWebAuction.icns",
+  "background": "./NiuWebAuction_DMG.png",
+  "icon-size": 128,
   "window": {
     "size": {
-      "width": 800,
-      "height": 600
+      "width": 600,
+      "height": 400
     }
   },
   "contents": [
     {
-      "x": 100,
-      "y": 500,
+      "x": 150,
+      "y": 250,
       "type": "file",
       "path": "dist/mac/NiuAuction-darwin-x64/NiuAuction.app"
     },
     {
-      "x": 660,
-      "y": 500,
+      "x": 450,
+      "y": 250,
       "type": "link",
       "path": "/Applications"
     }
