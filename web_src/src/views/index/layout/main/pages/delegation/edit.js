@@ -107,16 +107,16 @@ export default class Delegate extends Component {
     })
   }
   handleSaveStaff () {
-    const { index, name = "", number = "" } = this.state.staffEdit
+    const { index, name = "" } = this.state.staffEdit
     if (name === "") {
       message.error("姓名不能为空")
       return
     }
     const staffs = this.state.staffs
     if (index || index === 0) {
-      staffs[index] = { name, number }
+      staffs[index] = { name }
     } else {
-      staffs.push({ name, number })
+      staffs.push({ name })
     }
     this.setState({
       staffs,
@@ -161,7 +161,11 @@ export default class Delegate extends Component {
     })
   }
   handleSaveDelegate() {
-    const { index, name = "", phone = "", lots = [] } = this.state.delegateEdit
+    const { index, number = "", name = "", phone = "", lots = [] } = this.state.delegateEdit
+    if (number === "") {
+      message.error("号牌不能为空")
+      return
+    }
     if (name === "") {
       message.error("姓名不能为空")
       return
@@ -173,9 +177,9 @@ export default class Delegate extends Component {
     lots.sort()
     const delegates = this.state.delegates
     if (index || index === 0) {
-      delegates[index] = { name, phone, lots }
+      delegates[index] = { number, name, phone, lots }
     } else {
-      delegates.push({ name, phone, lots })
+      delegates.push({ number, name, phone, lots })
     }
     this.setState({
       delegates,
@@ -249,6 +253,12 @@ export default class Delegate extends Component {
   }
 
   handlePrint () {
+    this.props.history.push('/print/delegation/' + encodeURIComponent(JSON.stringify({
+        name: this.state.name,
+        date: this.state.date.format("YYYY-HH-DD HH:mm:ss"),
+        staffs: this.renderDelegate()
+      })))
+    return
     ipcRenderer.send(
       "delegation.print",
       {
@@ -308,7 +318,6 @@ export default class Delegate extends Component {
                 rowKey="name"
               >
                 <Table.Column dataIndex="name" />
-                <Table.Column dataIndex="number" />
                 <Table.Column align="right" render={(_, __, index) => (
                   <Button.Group size="small">
                     <Button onClick={() => this.handleEditStaff(index)}>编辑</Button>
@@ -333,6 +342,7 @@ export default class Delegate extends Component {
                 dataSource={delegates}
                 rowKey="name"
               >
+                <Table.Column dataIndex="number" />
                 <Table.Column dataIndex="name" />
                 <Table.Column dataIndex="phone" />
                 <Table.Column align="right" render={(_, __, index) => (
@@ -370,13 +380,6 @@ export default class Delegate extends Component {
                 onInput={(e) => this.handleChangeStaff('name', e.target.value)}
               />
             </Form.Item>
-            <Form.Item>
-              <Input
-                addonBefore="号牌"
-                value={this.state.staffEdit.number}
-                onInput={(e) => this.handleChangeStaff('number', e.target.value)}
-              />
-            </Form.Item>
           </Modal>
           <Modal
             title="委托"
@@ -390,6 +393,13 @@ export default class Delegate extends Component {
             <Form.Item>
               <Input
                 ref={this.delegateInput}
+                addonBefore="号牌"
+                value={this.state.delegateEdit.number}
+                onInput={(e) => this.handleChangeDelegate('number', e.target.value)}
+              />
+            </Form.Item>
+            <Form.Item>
+              <Input
                 addonBefore="姓名"
                 value={this.state.delegateEdit.name}
                 onInput={(e) => this.handleChangeDelegate('name', e.target.value)}
@@ -513,7 +523,7 @@ export default class Delegate extends Component {
         context.fillStyle = 'RGBA(0,0,0,0.8)'
         context.font = `${canvasParams.labelFontSize}px sans-serif`
         context.fillText(task.name, left + 20, top + height / 2 - canvasParams.labelFontSize * 0.6)
-        context.fillText(task.phone, left + 20, top + height / 2 + canvasParams.labelFontSize * 0.6)
+        context.fillText(task.number, left + 20, top + height / 2 + canvasParams.labelFontSize * 0.6)
 
         task.lotList.forEach(lotID => {
           context.fillStyle = '#F0250F60'
@@ -587,6 +597,7 @@ export default class Delegate extends Component {
               staff.tasks.push({
                 from,
                 to,
+                number: delegate.number,
                 name: delegate.name,
                 phone: delegate.phone,
                 lotList
@@ -601,6 +612,7 @@ export default class Delegate extends Component {
           staff.tasks.push({
             from,
             to,
+            number: delegate.number,
             name: delegate.name,
             phone: delegate.phone,
             lotList

@@ -4,7 +4,7 @@ const os = require('os')
 const path = require('path')
 
 const dev = true
-const origin = "http://localhost:8081/"
+const origin = "http://localhost:8080/"
 
 ipcMain.on('delegation.print', (event, staffs) => {
   const win = new BrowserWindow({
@@ -18,7 +18,9 @@ ipcMain.on('delegation.print', (event, staffs) => {
     win.webContents.openDevTools()
     win.loadURL(origin + 'index.html#/print/delegation/' + encodeURIComponent(JSON.stringify(staffs))) 
   } else {
-    win.loadFile('index.html#/print/delegation/' + encodeURIComponent(JSON.stringify(staffs)))
+win.webContents.openDevTools()
+    win.loadFile('index.html')
+    win.loadURL('#/print/delegation/' + encodeURIComponent(JSON.stringify(staffs)))
   }
 })
 
@@ -33,10 +35,11 @@ ipcMain.on('print', (event) => {
       fs.writeFile(file, data, (error) => {
         shell.openExternal('file://' + file)
       })
-      win.close()
-      win.destroy()
+      //win.close()
+      //win.destroy()
     }
   )
+  event.returnValue = 'finish'
 })
 
 ipcMain.on('openDirectory', (event) => {
