@@ -7,9 +7,9 @@
   "scripts": {
     "dev": "cd web_src && cyb dev",
     "start": "sed -i '' 's/dev = false/dev = true/g' index.js && electron --inspect=5858 .",
-    "build": "sed -i '' 's/dev = true/dev = false/g' index.js && electron-packager . NiuAuction --out dist/mac/ --overwrite --icon NiuWebAuction.icns --ignore=\"(dist|node_modules|web_src)\"",
+    "build": "sed -i '' 's/dev = true/dev = false/g' index.js && electron-packager . NiuAuction --out dist/mac/ --overwrite --icon NiuWebAuction.icns --ignore=\"(dist|node_modules|web_src)\" && appdmg dmg.json ./dist/mac/NiuAuction.dmg",
     "build:win": "sed -i '' 's/dev = true/dev = false/g' index.js && electron-packager . NiuAuction --platform win32 --arch x64 --out dist/win/ --overwrite --icon NiuWebAuction.ico --ignore=\"(dist|node_modules|web_src)\"",
-    "help": "electron-packager --help"
+    "help": "appdmg --help"
   },
   "repository": {
     "type": "git",
@@ -22,6 +22,7 @@
   },
   "homepage": "https://gitlab.com/niuxg/niu_auction#readme",
   "devDependencies": {
+    "appdmg": "^0.6.0",
     "electron": "^5.0.3",
     "electron-builder": "^20.43.0",
     "electron-packager": "^13.1.1",
@@ -32,6 +33,5 @@
     "copyright": "NiuWeb",
     "productName": "NiuAuction"
   },
-  "dependencies": {
-  }
+  "dependencies": {}
 }
