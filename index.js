@@ -3,8 +3,8 @@ const fs = require('fs')
 const os = require('os')
 const path = require('path')
 
-const dev = true
-const origin = "http://localhost:8080/"
+const dev = false
+const origin = "http://localhost:8081/"
 
 ipcMain.on('delegation.print', (event, staffs) => {
   const win = new BrowserWindow({

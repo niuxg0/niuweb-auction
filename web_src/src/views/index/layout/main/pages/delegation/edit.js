@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import {
-  Input, DatePicker, InputNumber, Row, Col, Spin, Divider, Table, Button, Modal, Form, Select, message
+  Input, DatePicker, InputNumber, Row, Col, Spin, Divider, Table, Button, Modal, Form, Select, message, Switch
 } from 'antd'
 import moment from 'moment'
 import { delegationDetail, delegationSave } from '@/api'
@@ -9,11 +9,6 @@ import styles from './index.less';
 
 const electron = window.require('electron')
 const { ipcRenderer } = electron
-
-// 单次电话前后最少要空闲的Lot号数量
-const minOffset = 5
-// 委托Lot号不连续的情况下，间隔的Lot号超过此值后，可挂断电话。
-const maxDelegateSpace = 10
 
 const withLabelLayout = {
   labelCol: {
@@ -53,7 +48,9 @@ export default class Delegate extends Component {
       staffs: [],
       delegates: [],
       staffEdit: false,
-      delegateEdit: false
+      delegateEdit: false,
+      minOffset: window.localStorage.getItem('delegation.minOffset') * 1 || 5, // 单次电话前后最少要空闲的Lot号数量
+      maxDelegateSpace: window.localStorage.getItem('delegation.maxDelegateSpace') * 1 || 10 // 委托Lot号不连续的情况下，间隔的Lot号超过此值后，可挂断电话。
     }
     this.staffInput = React.createRef()
     this.delegateInput = React.createRef()
@@ -161,7 +158,7 @@ export default class Delegate extends Component {
     })
   }
   handleSaveDelegate() {
-    const { index, number = "", name = "", phone = "", lots = [] } = this.state.delegateEdit
+    const { index, number = "", name = "", phone = "", lots = [], assign = false, assignTo } = this.state.delegateEdit
     if (number === "") {
       message.error("号牌不能为空")
       return
@@ -177,9 +174,9 @@ export default class Delegate extends Component {
     lots.sort()
     const delegates = this.state.delegates
     if (index || index === 0) {
-      delegates[index] = { number, name, phone, lots }
+      delegates[index] = { number, name, phone, lots, assign, assignTo }
     } else {
-      delegates.push({ number, name, phone, lots })
+      delegates.push({ number, name, phone, lots, assign, assignTo })
     }
     this.setState({
       delegates,
@@ -216,6 +213,38 @@ export default class Delegate extends Component {
       canvasHeight: staffs.length * canvasParams.nameHeight + canvasParams.lotHeight,
       canvasLeft
     }, () => this.renderCanvas())
+  }
+
+  handleShowSetting () {
+    const {
+      minOffset = 5,
+      maxDelegateSpace = 10
+    } = this.state
+    this.setState({
+      showSetting: true,
+      showSettingMinOffset: minOffset === null ? 5 : minOffset,
+      showSettingMaxDelegateSpace: maxDelegateSpace === null ? 10 : maxDelegateSpace
+    })
+  }
+
+  handleHideSetting () {
+    this.setState({
+      showSetting: false
+    })
+  }
+
+  handleSaveSetting () {
+    const {
+      showSettingMinOffset = 5,
+      showSettingMaxDelegateSpace = 10
+    } = this.state
+    this.setState({
+      showSetting: false,
+      minOffset: showSettingMinOffset,
+      maxDelegateSpace: showSettingMaxDelegateSpace
+    }, () => this.renderCanvas())
+    window.localStorage.setItem('delegation.minOffset', showSettingMinOffset)
+    window.localStorage.setItem('delegation.maxDelegateSpace', showSettingMaxDelegateSpace)
   }
 
   handleSubmit () {
@@ -275,8 +304,11 @@ export default class Delegate extends Component {
       staffs,
       delegates,
       canvasWidth = 0,
-      canvasHeight = 0
+      canvasHeight = 0,
+      showSettingMinOffset = 5,
+      showSettingMaxDelegateSpace = 10
     } = this.state
+    console.log(showSettingMinOffset, showSettingMaxDelegateSpace)
     const lots = []
     for(let i = lot[0]; i <= lot[1]; i++) {
       lots.push(i)
@@ -307,7 +339,7 @@ export default class Delegate extends Component {
                 scroll={{ y: 180 }}
                 title={() => (
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span>委托席 / 号牌</span>
+                    <span>委托席</span>
                     <Button size="small" onClick={() => this.handleNewStaff()}>新增</Button>
                   </div>
                 )}
@@ -358,13 +390,14 @@ export default class Delegate extends Component {
             <canvas ref={this.canvas} style={{ width: canvasWidth / 2, height: canvasHeight / 2 }} width={canvasWidth} height={canvasHeight} />
           </div>
           <div style={{ width: '100', marginTop: 16, textAlign: 'right' }}>
+            <Button icon="setting" style={{ float: 'left' }} onClick={() => this.handleShowSetting()} />
             <Button onClick={() => this.handlePrint()}>打印报告</Button>
             <Divider type="vertical" />
             <Button style={{ marginRight: 8 }} onClick={() => this.handleCancel()}>返回</Button>
             <Button type="primary" onClick={() => this.handleSubmit()}>保存</Button>
           </div>
           <Modal
-            title="委托席 / 号牌"
+            title="委托席"
             visible={this.state.staffEdit}
             onOk={() => this.handleSaveStaff()}
             onCancel={() => this.handleCancelStaff()}
@@ -427,6 +460,49 @@ export default class Delegate extends Component {
                 </Select>
               </Input.Group>
             </Form.Item>
+            <Form.Item>
+              指定委托席
+              <Switch checked={!!this.state.delegateEdit.assign} onChange={(assign) => this.handleChangeDelegate('assign', assign)} style={{ margin: '0 10px' }} />
+              {
+                this.state.delegateEdit.assign ? (
+                  <Select value={this.state.delegateEdit.assignTo} onChange={(assignTo) => this.handleChangeDelegate('assignTo', assignTo)} style={{ width: 100 }} placeholder="请选择">
+                    {this.state.staffs.map(({ name }) => (
+                      <Select.Option key={name}>{name}</Select.Option>
+                    ))}
+                  </Select>
+                ) : null
+              }
+            </Form.Item>
+          </Modal>
+          <Modal
+            title="设置"
+            visible={!!this.state.showSetting}
+            footer={(
+              <React.Fragment>
+                <Button>恢复默认值</Button>
+                <Divider type="vertical" />
+                <Button onClick={() => this.handleHideSetting()}>返回</Button>
+                <Button onClick={() => this.handleSaveSetting()} type="primary">保存</Button>
+              </React.Fragment>
+            )}
+            forceRender={true}
+            closable={false}
+            maskClosable={false}
+          >
+            <Form.Item>
+              <Input.Group compact>
+                <Input value="委托之间至少需要间隔" style={{ width: 170, textAlign: 'center' }} disabled />
+                <InputNumber style={{ width: 60, textAlign: 'right' }} value={showSettingMinOffset} onChange={(value) => this.setState({ showSettingMinOffset: value })} />
+                <Input value="个Lot" style={{ width: 60 }} disabled />
+              </Input.Group>
+            </Form.Item>
+            <Form.Item>
+              <Input.Group compact>
+                <Input value="委托中各Lot号之间间隔" style={{ width: 170, textAlign: 'center' }} disabled />
+                <InputNumber style={{ width: 60, textAlign: 'right' }} value={showSettingMaxDelegateSpace} onChange={(value) => this.setState({ showSettingMaxDelegateSpace: value })} />
+                <Input value="个Lot即可挂断电话承接其他委托" style={{ width: 230 }} disabled />
+              </Input.Group>
+            </Form.Item>
           </Modal>
         </Spin>
       </div>
@@ -437,7 +513,8 @@ export default class Delegate extends Component {
       lot,
       canvasWidth,
       canvasHeight,
-      canvasLeft
+      canvasLeft,
+      minOffset = 5
     } = this.state
 
     const staffs = this.renderDelegate()
@@ -546,13 +623,59 @@ export default class Delegate extends Component {
   renderDelegate () {
     const {
       staffs: _staffs,
-      delegates: _delegates
+      delegates: _delegates,
+      minOffset = 5,
+      maxDelegateSpace = 10
     } = this.state
 
     const staffs = JSON.parse(JSON.stringify(_staffs))
     const delegates = JSON.parse(JSON.stringify(_delegates))
 
     delegates.forEach((delegate) => {
+      if (delegate.assign) {
+        const {
+          lots = []
+        } = delegate
+
+        const staff = staffs.find(staff => staff.name === delegate.assignTo)
+        if (!staff) return
+        if (!staff.tasks) {
+          staff.tasks = []
+        }
+
+        let from = lots.shift()
+        let to = from
+        let lotList = [from]
+        while(lots.length) {
+          const lot = lots.shift()
+          if (lot - to > maxDelegateSpace) {
+            staff.tasks.push({
+              from,
+              to,
+              number: delegate.number,
+              name: delegate.name,
+              phone: delegate.phone,
+              lotList
+            })
+            from = lot
+            lotList = []
+          }
+          to = lot
+          lotList.push(lot)
+        }
+        staff.tasks.push({
+          from,
+          to,
+          number: delegate.number,
+          name: delegate.name,
+          phone: delegate.phone,
+          lotList
+        })
+      }
+    })
+
+    delegates.forEach((delegate) => {
+      if (delegate.assign) return
       const {
         lots = []
       } = delegate
@@ -622,6 +745,19 @@ export default class Delegate extends Component {
         }
       })
     })
+
+    staffs.forEach(({ tasks }) => {
+      let i = 1
+      while(tasks[i]) {
+        if (tasks[i - 1].number === tasks[i].number) {
+          tasks[i - 1].lotList = tasks[i - 1].lotList.concat(tasks[i].lotList)
+          tasks[i - 1].to = tasks[i].to
+          tasks.splice(i, 1)
+        }
+        i++
+      }
+    })
+    console.log('staffs', staffs)
 
     return staffs
   }
