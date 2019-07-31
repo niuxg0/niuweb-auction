@@ -2,26 +2,99 @@ const { app, ipcMain, BrowserWindow, shell, dialog, nativeImage, Menu, MenuItem 
 const fs = require('fs')
 const os = require('os')
 const path = require('path')
+const child_process = require('child_process')
+const exceljs = require('exceljs')
 
 const dev = false
 const origin = "http://localhost:8081/"
 
-ipcMain.on('delegation.print', (event, staffs) => {
-  const win = new BrowserWindow({
-    width: 800,
-    height: 600,
-    webPreferences: {
-      nodeIntegration: true
-    },
-  })
-  if (dev) {
-    win.webContents.openDevTools()
-    win.loadURL(origin + 'index.html#/print/delegation/' + encodeURIComponent(JSON.stringify(staffs))) 
-  } else {
-win.webContents.openDevTools()
-    win.loadFile('index.html')
-    win.loadURL('#/print/delegation/' + encodeURIComponent(JSON.stringify(staffs)))
+ipcMain.on('delegation.export', (event, name, data) => {
+  const filename = dialog.showSaveDialog({ defaultPath: `${name}.xlsx` })
+  console.log('filename', filename)
+  if (filename === undefined) {
+    event.returnValue = 'cancel'
+    return
   }
+  const workbook = new exceljs.Workbook()
+  workbook.creator = 'NiuAuction'
+  const sheet = workbook.addWorksheet('工作表')
+  sheet.columns = [
+    {
+      header: 'Lot号',
+      key: 'lot',
+      width: 10,
+      style: {
+        alignment: {
+          vertical: 'middle',
+          horizontal: 'right'
+        }
+      }
+    },
+    {
+      header: '办牌人',
+      key: 'delegation_number',
+      width: 10,
+      style: {
+        alignment: {
+          vertical: 'middle',
+          horizontal: 'right'
+        }
+      }
+    },
+    {
+      header: '',
+      key: 'delegation_name',
+      width: 15,
+      style: {
+        alignment: {
+          vertical: 'middle',
+          horizontal: 'left'
+        }
+      }
+    },
+    {
+      header: '',
+      key: 'delegation_phone',
+      width: 20,
+      style: {
+        alignment: {
+          vertical: 'middle',
+          horizontal: 'left'
+        }
+      }
+    },
+    {
+      header: '工作人员',
+      key: 'staff',
+      width: 15,
+      style: {
+        alignment: {
+          vertical: 'middle',
+          horizontal: 'left'
+        }
+      }
+    }
+  ]
+
+  sheet.addRow({ lot: '', delegation_number: '牌号', delegation_name: '姓名', delegation_phone: '电话', staff: '' })
+
+  sheet.mergeCells('B1:D1')
+  sheet.mergeCells('A1:A2')
+  sheet.mergeCells('E1:E2')
+
+  sheet.getCell('B1').alignment.horizontal = 'center'
+
+  sheet.addRows(data)
+
+  workbook.xlsx.writeFile(filename)
+
+  if (os.platform() === 'darwin') {
+    child_process.exec(`open ${filename}`)
+  } else if (os.platform() === 'win32') {
+    child_process.exec(`explorer.exe /select, "${filename}"`)
+  }
+
+  event.returnValue = 'finish'
 })
 
 ipcMain.on('print', (event) => {

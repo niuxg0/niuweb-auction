@@ -283,19 +283,46 @@ export default class Delegate extends Component {
 
   handlePrint () {
     this.props.history.push('/print/delegation/' + encodeURIComponent(JSON.stringify({
-        name: this.state.name,
-        date: this.state.date.format("YYYY-HH-DD HH:mm:ss"),
-        staffs: this.renderDelegate()
-      })))
-    return
-    ipcRenderer.send(
-      "delegation.print",
-      {
-        name: this.state.name,
-        date: this.state.date.format("YYYY-HH-DD HH:mm:ss"),
-        staffs: this.renderDelegate()
-      }
+      name: this.state.name,
+      date: this.state.date.format("YYYY-HH-DD HH:mm:ss"),
+      staffs: this.renderDelegate()
+    })))
+  }
+
+  handleExport () {
+    const data = []
+    this.renderDelegate().forEach(_staff => {
+      const {
+        name: staff,
+        tasks
+      } = _staff
+      tasks.forEach(_task => {
+        const {
+          name: delegation_name,
+          number: delegation_number,
+          phone: delegation_phone,
+          lotList
+        } = _task
+        lotList.forEach(lot => {
+          data.push({
+            lot,
+            delegation_number,
+            delegation_name,
+            delegation_phone,
+            staff
+          })
+        })
+      })
+    })
+    data.sort((a, b) => {return a.lot - b.lot})
+    const result = ipcRenderer.sendSync(
+      "delegation.export",
+      this.state.name,
+      data
     )
+    if (result === 'finish') {
+      Modal.success({ title: '导出成功' })
+    }
   }
 
   render () {
@@ -391,7 +418,10 @@ export default class Delegate extends Component {
           </div>
           <div style={{ width: '100', marginTop: 16, textAlign: 'right' }}>
             <Button icon="setting" style={{ float: 'left' }} onClick={() => this.handleShowSetting()} />
-            <Button onClick={() => this.handlePrint()}>打印报告</Button>
+            <Button.Group>
+              <Button onClick={() => this.handlePrint()}>打印报告</Button>
+              <Button onClick={() => this.handleExport()}>导出数据</Button>
+            </Button.Group>
             <Divider type="vertical" />
             <Button style={{ marginRight: 8 }} onClick={() => this.handleCancel()}>返回</Button>
             <Button type="primary" onClick={() => this.handleSubmit()}>保存</Button>

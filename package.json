@@ -33,5 +33,7 @@
     "copyright": "NiuWeb",
     "productName": "NiuAuction"
   },
-  "dependencies": {}
+  "dependencies": {
+    "exceljs": "^1.14.0"
+  }
 }
