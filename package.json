@@ -7,9 +7,8 @@
   "scripts": {
     "dev": "cd web_src && cyb dev",
     "start": "sed -i '' 's/dev = false/dev = true/g' index.js && electron --inspect=5858 .",
-    "build": "rm -rf ./dist/mac/NiuAuction.dmg && sed -i '' 's/dev = true/dev = false/g' index.js && electron-packager . NiuAuction --out dist/mac/ --overwrite --icon NiuWebAuction.icns --ignore=\"(dist|node_modules|web_src)\" && appdmg dmg.json ./dist/mac/NiuAuction.dmg",
-    "build:win": "rm -rf ./dist/win/NiuAuction.zip && sed -i '' 's/dev = true/dev = false/g' index.js && electron-packager . NiuAuction --platform win32 --arch x64 --out dist/win/ --overwrite --icon NiuWebAuction.ico --ignore=\"(dist|node_modules|web_src)\" && cd dist/win && zip -r NiuAuction.zip NiuAuction-win32-x64",
-    "help": "appdmg --help"
+    "dist:mac": "sed -i '' 's/dev = true/dev = false/g' index.js && electron-builder --mac",
+    "dist:win": "sed -i '' 's/dev = true/dev = false/g' index.js && electron-builder --win"
   },
   "repository": {
     "type": "git",
@@ -31,9 +30,46 @@
   "build": {
     "appId": "niuweb.niu_auction",
     "copyright": "NiuWeb",
-    "productName": "NiuAuction"
+    "productName": "NiuAuction",
+    "directories": {
+      "output": "dist/${version}",
+      "app": "build"
+    },
+    "publish": [
+      {
+        "provider": "github"
+      }
+    ],
+    "mac": {
+      "target": "dmg",
+      "icon": "NiuWebAuction.icns",
+      "artifactName": "${productName}.${ext}",
+      "identity": null
+    },
+    "dmg": {
+      "icon": "NiuWebAuction.icns"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "NiuWebAuction.ico",
+      "artifactName": "${productName}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "runAfterFinish": true,
+      "installerIcon": "NiuWebAuction.ico",
+      "uninstallerIcon": "NiuWebAuction.ico"
+    },
+    "electronDownload": {
+      "mirror": "https://npm.taobao.org/mirrors/electron/"
+    }
   },
   "dependencies": {
+    "electron-updater": "^4.1.2",
     "exceljs": "^1.14.0"
   }
 }
