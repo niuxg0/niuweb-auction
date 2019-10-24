@@ -1,7 +1,7 @@
 {
   "name": "niu_auction",
   "productName": "NiuAuction",
-  "version": "1.0.0",
+  "version": "1.2.2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -50,7 +50,7 @@
       "icon": "NiuWebAuction.icns"
     },
     "win": {
-      "target": "nsis",
+      "target": "portable",
       "icon": "NiuWebAuction.ico",
       "artifactName": "${productName}.${ext}"
     },

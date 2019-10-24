@@ -6,7 +6,7 @@ const child_process = require('child_process')
 const exceljs = require('exceljs')
 
 const dev = false
-const origin = "http://localhost:8081/"
+const origin = "http://localhost:8080/"
 
 ipcMain.on('delegation.export', (event, name, data) => {
   const filename = dialog.showSaveDialog({ defaultPath: `${name}.xlsx` })
@@ -203,6 +203,11 @@ const template = [
         }
       },
       { label: `刷新`, role: 'reload' },
+      { type: 'separator' },
+      { label: `全选`, role: 'selectAll' },
+      { label: `剪切`, role: 'cut' },
+      { label: `复制`, role: 'copy' },
+      { label: `粘贴`, role: 'paste' },
       { type: 'separator' },
       { label: `退出 ${app.getName()}`, role: 'quit' }
     ]

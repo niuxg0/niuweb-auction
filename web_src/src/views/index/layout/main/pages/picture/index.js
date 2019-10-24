@@ -164,9 +164,9 @@ export default class Picture extends Component {
         {
           from,
           to,
-          files: files.filter((file) => (new RegExp(`^${from}[\\.\\-\\(\\[（【].*$`)).test(file)).map(file => ({
+          files: files.filter((file) => (new RegExp(`^${from}[ \\.\\-\\(\\[（【].*$`)).test(file)).map(file => ({
             from: file,
-            to: file.replace(new RegExp(`^${from}([\\.\\-\\(\\[（【].*)$`), `${to}$1`)
+            to: file.replace(new RegExp(`^${from}([ \\.\\-\\(\\[（【].*)$`), `${to}$1`)
           }))
         }
       ))
