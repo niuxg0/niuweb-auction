@@ -22,7 +22,7 @@
   "homepage": "https://gitlab.com/niuxg/niu_auction#readme",
   "devDependencies": {
     "appdmg": "^0.6.0",
-    "electron": "^5.0.3",
+    "electron": "^9.1.0",
     "electron-builder": "^20.43.0",
     "electron-packager": "^13.1.1",
     "wine": "^0.9.8"
