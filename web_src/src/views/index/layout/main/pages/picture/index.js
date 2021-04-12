@@ -102,7 +102,8 @@ export default class Picture extends Component {
       to: "",
       map: [],
       mapString: "",
-      showMap: false
+      showMap: false,
+      fuzzy: false
     }
   }
   handleOpenDirectory (order) {
@@ -135,6 +136,11 @@ export default class Picture extends Component {
       compressSize: 0
     })
   }
+  handleFuzzy (fuzzy) {
+    this.setState({
+      fuzzy
+    })
+  }
   handleMapImport () {
     if (this.state.loading) return
     const map = {}
@@ -164,9 +170,9 @@ export default class Picture extends Component {
         {
           from,
           to,
-          files: files.filter((file) => (new RegExp(`^${from}[ \\.\\-\\(\\[（【].*$`)).test(file)).map(file => ({
+          files: files.filter((file) => (new RegExp(`^${from}${this.state.fuzzy ? '[^ \\.\\-\\(\\[（【]*' : ''}[ \\.\\-\\(\\[（【].*$`,'i')).test(file)).map(file => ({
             from: file,
-            to: file.replace(new RegExp(`^${from}([ \\.\\-\\(\\[（【].*)$`), `${to}$1`)
+            to: file.replace(new RegExp(`^${from}${this.state.fuzzy ? '[^ \\.\\-\\(\\[（【]*' : ''}([ \\.\\-\\(\\[（【].*)$`,'i'), `${to}$1`)
           }))
         }
       ))
@@ -266,7 +272,11 @@ export default class Picture extends Component {
             autosize={{ minRows: 4, maxRows: 10 }}
             placeholder={"在此处输入或粘贴映射关系\n每条规则一行，以Tab键分隔源文件名和目标文件名。"}
           />
-          <Row gutter={16} style={{ display: 'flex', justifyContent: 'left', alignItems: 'center', marginTop: 10, marginBottom: -10, height: 30 }}>
+          <Row gutter={16} style={{ display: 'flex', justifyContent: 'left', alignItems: 'center', marginTop: 10, height: 30 }}>
+            <Col span={4}>模糊搜索</Col>
+            <Col span={4}><Switch value={this.state.fuzzy} onChange={(fuzzy) => this.handleFuzzy(fuzzy)} /></Col>
+          </Row>
+          <Row gutter={16} style={{ display: 'flex', justifyContent: 'left', alignItems: 'center', marginBottom: -10, height: 30 }}>
             <Col span={4}>图片压缩</Col>
             <Col span={4}><Switch value={this.state.compress} onChange={(compress) => this.handleCompress(compress)} /></Col>
             {
