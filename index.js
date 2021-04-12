@@ -5,7 +5,7 @@ const path = require('path')
 const child_process = require('child_process')
 const exceljs = require('exceljs')
 
-const dev = true
+const dev = false
 const origin = "http://localhost:8080/"
 
 ipcMain.on('delegation.export', (event, name, data) => {
@@ -178,7 +178,8 @@ function createWindow() {
     height: 600,
     minWidth: 800,
     webPreferences: {
-      nodeIntegration: true
+      nodeIntegration: true,
+      contextIsolation: false
     },
   })
 

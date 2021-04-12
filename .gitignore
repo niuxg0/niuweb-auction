@@ -23,3 +23,4 @@ build.command
 dev/zindex.html
 static
 index.html
+out/

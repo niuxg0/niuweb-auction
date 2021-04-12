@@ -1,7 +1,7 @@
-import React, { Component, Fragment } from 'react';
-import { Row, Col, Input, Button, Tag, Modal, Form, Switch, InputNumber, Select } from 'antd';
+import React, { Component } from 'react';
+import { Row, Col, Input, Button, Tag, Modal, Switch, InputNumber } from 'antd';
 import styled from 'styled-components'
-import { resolve, reject } from '_bluebird-lst@1.0.9@bluebird-lst';
+
 
 const electron = window.require('electron')
 const { ipcRenderer } = electron
