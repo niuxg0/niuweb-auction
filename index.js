@@ -5,7 +5,7 @@ const path = require('path')
 const child_process = require('child_process')
 const exceljs = require('exceljs')
 
-const dev = false
+const dev = true
 const origin = "http://localhost:8080/"
 
 ipcMain.on('delegation.export', (event, name, data) => {
@@ -115,12 +115,16 @@ ipcMain.on('print', (event) => {
   event.returnValue = 'finish'
 })
 
-ipcMain.on('openDirectory', (event) => {
-  event.returnValue = dialog.showOpenDialog({ properties: ['openDirectory'] })
+ipcMain.on('openDirectory', async (event) => {
+  const directory = await dialog.showOpenDialog({ properties: ['openDirectory'] })
+  event.returnValue = directory.filePaths
 })
 
 ipcMain.on('readDirectory', (event, path) => {
-  event.returnValue = fs.readdirSync(path, { withFileTypes: true })
+  event.returnValue = fs.readdirSync(path, { withFileTypes: true }).map((file) => ({
+    name: file.name,
+    isDirectory: file.isDirectory()
+  }))
 })
 
 ipcMain.on('copyFile', async (event, fromPath, from, toPath, to, compressSize) => {
@@ -143,6 +147,20 @@ ipcMain.on('copyFile', async (event, fromPath, from, toPath, to, compressSize) =
         fs.writeFileSync(path.join(toPath, to), input)
       }
     }
+    event.returnValue = { status: 1 }
+  } catch (err) {
+    event.returnValue = { status: 2, message: err }
+  }
+})
+
+ipcMain.on('copyDirectory', async (event, fromPath, from, toPath, to) => {
+  try {
+    const copyDirectory = (from, to) => {
+      fs.mkdirSync(to)
+      const files = fs.readdirSync(from, { withFileTypes: true })
+    }
+    copyDirectory(path.join(fromPath, from), path.join(toPath, to))
+
     event.returnValue = { status: 1 }
   } catch (err) {
     event.returnValue = { status: 2, message: err }

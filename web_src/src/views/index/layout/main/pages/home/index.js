@@ -31,6 +31,11 @@ const Item = styled(Card)`
 const item = [
   {
     icon: iconPicture,
+    label: "文件夹顺号",
+    path: "folder"
+  },
+  {
+    icon: iconPicture,
     label: "图片顺号",
     path: "picture"
   },
