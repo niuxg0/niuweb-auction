@@ -25,7 +25,7 @@ body:
       label: Issue 标题
     validations:
       required: true
-  - type: checkbox
+  - type: checkboxes
     id: from
     attributes:
       label: 功能来源
