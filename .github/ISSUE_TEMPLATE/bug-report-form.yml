@@ -1,6 +1,7 @@
 name: 功能要求
 description: 为CCMS项目提出新功能建议
 title: "[Feature Request]: "
+labels: ["enhancement"]
 body:
   - type: markdown
     attributes:
