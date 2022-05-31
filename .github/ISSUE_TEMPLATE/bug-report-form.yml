@@ -19,22 +19,17 @@ body:
         - 我不清楚
     validations:
       required: true
-  - type: input
-    id: title
-    attributes:
-      label: Issue 标题
-    validations:
-      required: true
-  - type: checkboxes
+  - type: dropdown
     id: from
     attributes:
       label: 功能来源
       description: 这个功能是由哪种用户角色提出的？
       options:
-        - label: 页面使用者
-        - label: 页面实施人员
-        - label: 页面开发者
-        - label: 自定义组件开发者
+        - 页面使用者
+        - 页面实施人员
+        - 页面开发者
+        - 自定义组件开发者
+      multiple: true
     validations:
       required: true
   - type: textarea
