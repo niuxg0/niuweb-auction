@@ -1,62 +1,53 @@
-name: Bug Report
-description: File a bug report
-title: "[Bug]: "
-labels: ["bug", "triage"]
-assignees:
-  - octocat
+name: 功能要求
+description: 为CCMS项目提出新功能建议
+title: "[Feature Request]: "
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this bug report!
+        感谢您为CCMS项目提出新功能建议，在开 issue 前，可以先搜索一下以往的旧 issue - 你遇到的问题可能已经有人提了，也可能已经在最新版本中被修正。注意：如果你发现一个已经关闭的旧 issue 在最新版本中仍然存在，请不要在旧 issue 下面留言，而应该用下面的表单开一个新的 issue。
+  - type: dropdown
+    id: package
+    attribute:
+      label: 所在包
+      description: 您提出功能建议的包（package）。可以帮助我们快速定位负责人，以跟进问题。
+      options:
+        - 核心库（core）
+        - UI库 - AntDesign版（UIs/ccms-antd）
+        - UI库 - AntDesign Mini版（UIs/ccms-antd-mini）
+        - 编辑器（Editor）
+        - 我不清楚
+    validations:
+      required: true
   - type: input
-    id: contact
+    id: title
     attributes:
-      label: Contact Details
-      description: How can we get in touch with you if we need more info?
-      placeholder: ex. email@example.com
+      label: Issue 标题
+    validations:
+      required: true
+  - type: checkbox
+    id: from
+    attributes:
+      label: 功能来源
+      description: 这个功能是由哪种用户角色提出的？
+      options:
+        - 页面使用者
+        - 页面实施人员
+        - 页面开发者
+        - 自定义组件开发者
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: 这个功能可以解决什么问题？
+      description: 请尽可能的说明这个功能的使用场景，并从页面实施人员/页面使用者的角度描述该功能是如果产生的。
+    validations:
+      required: true
+  - type: textarea
+    id: how
+    attributes:
+      label: 您期望该功能如何实现？
+      description: 您可以从页面交互或API角度简单描述您期望的实现方式。
     validations:
       required: false
-  - type: textarea
-    id: what-happened
-    attributes:
-      label: What happened?
-      description: Also tell us, what did you expect to happen?
-      placeholder: Tell us what you see!
-      value: "A bug happened!"
-    validations:
-      required: true
-  - type: dropdown
-    id: version
-    attributes:
-      label: Version
-      description: What version of our software are you running?
-      options:
-        - 1.0.2 (Default)
-        - 1.0.3 (Edge)
-    validations:
-      required: true
-  - type: dropdown
-    id: browsers
-    attributes:
-      label: What browsers are you seeing the problem on?
-      multiple: true
-      options:
-        - Firefox
-        - Chrome
-        - Safari
-        - Microsoft Edge
-  - type: textarea
-    id: logs
-    attributes:
-      label: Relevant log output
-      description: Please copy and paste any relevant log output. 这将自动格式化为代码，因此无需背板。
-      render: shell
-  - type: checkboxes
-    id: terms
-    attributes:
-      label: Code of Conduct
-      description: By submitting this issue, you agree to follow our [Code of Conduct](https://example.com)
-      options:
-        - label: I agree to follow this project's Code of Conduct
-          required: true
