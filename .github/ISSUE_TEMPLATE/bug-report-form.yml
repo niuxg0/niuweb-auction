@@ -8,7 +8,7 @@ body:
         感谢您为CCMS项目提出新功能建议，在开 issue 前，可以先搜索一下以往的旧 issue - 你遇到的问题可能已经有人提了，也可能已经在最新版本中被修正。注意：如果你发现一个已经关闭的旧 issue 在最新版本中仍然存在，请不要在旧 issue 下面留言，而应该用下面的表单开一个新的 issue。
   - type: dropdown
     id: package
-    attribute:
+    attributes:
       label: 所在包
       description: 您提出功能建议的包（package）。可以帮助我们快速定位负责人，以跟进问题。
       options:
@@ -31,10 +31,10 @@ body:
       label: 功能来源
       description: 这个功能是由哪种用户角色提出的？
       options:
-        - 页面使用者
-        - 页面实施人员
-        - 页面开发者
-        - 自定义组件开发者
+        - label: 页面使用者
+        - label: 页面实施人员
+        - label: 页面开发者
+        - label: 自定义组件开发者
     validations:
       required: true
   - type: textarea
